@@ -1,13 +1,16 @@
-from fastapi import APIRouter, HTTPException
-from src.services.fingerprint_service import FingerprintService
+from fastapi import APIRouter, HTTPException, Body
+from typing import Optional
+
+from services.fingerprint_service import FingerprintService
 
 router = APIRouter()
 fingerprint_service = FingerprintService()
 
 @router.post("/fingerprints/verify")
-def verify_fingerprint(user_id: str, fingerprint_data: bytes):
+def verify_fingerprint(fingerprint_data: Optional[str] = Body(default=None, embed=True)):
+    """Endpoint to verify an incoming fingerprint."""
     try:
-        match = fingerprint_service.verify_fingerprint(user_id, fingerprint_data)
-        return {"match": match, "user_id": user_id} if match else {"match": False}
+        data = fingerprint_data.encode() if fingerprint_data is not None else b"sample_data"
+        return fingerprint_service.verify_fingerprint(data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
