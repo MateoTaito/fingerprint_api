@@ -6,4 +6,3 @@ requests
 pytest
 pytest-asyncio
 sqlalchemy
-```
