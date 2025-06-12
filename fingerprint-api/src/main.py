@@ -1,5 +1,7 @@
 from fastapi import FastAPI
-from src.api.endpoints import enrollment, verification
+from src.api.endpoints import enrollment as enroll_fingerprint
+from src.api.endpoints import verification as verify_fingerprint
+
 
 app = FastAPI()
 

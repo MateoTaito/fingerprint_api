@@ -1,14 +1,14 @@
 try:
     from digitalpersona import DigitalPersona  # type: ignore
-except ImportError:  # pragma: no cover - fallback stub for tests
+except ImportError:  # pragma: no cover - fallback for testing without the library
     class DigitalPersona:
-        """Simple stub used when the real library is unavailable."""
+        """Fallback DigitalPersona implementation used in tests."""
 
         def capture_fingerprint(self):
-            return b"stub_data"
+            return b"dummy_fingerprint"
 
         def verify_fingerprint(self, fingerprint_data):
-            # Pretend that any data equal to b"sample_data" matches
+
             return fingerprint_data == b"sample_data"
 
 class DigitalPersonaDriver:
@@ -25,5 +25,4 @@ class DigitalPersonaDriver:
 
     def verify_fingerprint(self, fingerprint_data):
         """Verify an existing fingerprint against captured data."""
-        match = self.device.verify_fingerprint(fingerprint_data)
-        return {"match": match}
+        return self.device.verify_fingerprint(fingerprint_data)

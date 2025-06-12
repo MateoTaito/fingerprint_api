@@ -7,15 +7,14 @@ from src.services.fingerprint_service import FingerprintService
 router = APIRouter()
 fingerprint_service = FingerprintService()
 
-class VerifyRequest(BaseModel):
-    fingerprint_data: bytes
+class VerificationRequest(BaseModel):
+
 
 
 @router.post("/fingerprints/verify")
-
-def verify_fingerprint(request: VerifyRequest):
+def verify_fingerprint(payload: VerificationRequest):
     try:
-        result = fingerprint_service.verify_fingerprint(request.fingerprint_data)
+        result = fingerprint_service.verify_fingerprint(payload.fingerprint_data)
         return result
 
     except Exception as e:
