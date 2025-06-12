@@ -1,8 +1,9 @@
 from typing import Any, Dict
+
 from .digitalpersona_driver import DigitalPersonaDriver
 
 class FingerprintService:
-    def __init__(self):
+    def __init__(self) -> None:
         self.driver = DigitalPersonaDriver()
 
     def enroll_fingerprint(self, user_id: str) -> Dict[str, Any]:
@@ -18,5 +19,6 @@ class FingerprintService:
         if result.get("match"):
             # In a real implementation the user_id would be determined from
             # the verified fingerprint data
+
             return {"match": True, "user_id": "1234"}
         return {"match": False}

@@ -5,5 +5,5 @@ python-dotenv
 requests
 pytest
 pytest-asyncio
-sqlalchemy
 httpx
+
