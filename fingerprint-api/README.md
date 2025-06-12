@@ -1,6 +1,6 @@
 # Fingerprint API
 
-This project is a FastAPI application designed to communicate with a DigitalPersona 4500 fingerprint reader connected to a Raspberry Pi. It provides endpoints for enrolling new fingerprints and verifying existing ones, facilitating frontend validation.
+This project is a FastAPI application designed to communicate with a libfprint-compatible fingerprint reader connected to a Raspberry Pi. It provides endpoints for enrolling new fingerprints and verifying existing ones, facilitating frontend validation.
 
 ## Features
 
@@ -52,7 +52,7 @@ fingerprint-api
 ## Usage
 
 - **Enroll a Fingerprint**:
-  Send a POST request to `/fingerprints/enroll` with the necessary data to enroll a new fingerprint.
+  Send a POST request to `/fingerprints/enroll` to enroll a new fingerprint.
 
 - **Verify a Fingerprint**:
   Send a POST request to `/fingerprints/verify` with the fingerprint data to verify against existing records.

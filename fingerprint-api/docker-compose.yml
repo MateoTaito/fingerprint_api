@@ -12,7 +12,7 @@ services:
     environment:
       - ENV=development
       - DATABASE_URL=sqlite:///./test.db
-      - FINGERPRINT_READER=DigitalPersona4500
+      - FINGERPRINT_READER=libfprint
     depends_on:
       - db
 
