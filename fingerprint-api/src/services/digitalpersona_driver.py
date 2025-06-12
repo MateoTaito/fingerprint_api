@@ -8,6 +8,7 @@ except ImportError:  # pragma: no cover - fallback for testing without the libra
             return b"dummy_fingerprint"
 
         def verify_fingerprint(self, fingerprint_data):
+
             return fingerprint_data == b"sample_data"
 
 class DigitalPersonaDriver:

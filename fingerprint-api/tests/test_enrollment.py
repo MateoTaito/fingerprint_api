@@ -8,3 +8,4 @@ def test_enroll_fingerprint():
     response = client.post("/fingerprints/enroll", json=payload)
     assert response.status_code == 200
     assert response.json() == {"message": "Fingerprint enrolled successfully"}
+
