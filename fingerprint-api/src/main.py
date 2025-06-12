@@ -5,5 +5,5 @@ from src.api.endpoints import verification as verify_fingerprint
 
 app = FastAPI()
 
-app.include_router(enrollment.router)
-app.include_router(verification.router)
+app.include_router(enroll_fingerprint.router)
+app.include_router(verify_fingerprint.router)
