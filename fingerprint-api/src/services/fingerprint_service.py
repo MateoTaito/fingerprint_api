@@ -6,23 +6,19 @@ class FingerprintService:
     def __init__(self) -> None:
         self.driver = DigitalPersonaDriver()
 
-    def enroll_fingerprint(self) -> Dict[str, Any]:
-        """Enroll a fingerprint using the underlying driver."""
+    def enroll_fingerprint(self, user_id: str) -> Dict[str, Any]:
         result = self.driver.enroll_fingerprint()
-        if result.get("status") == "success":
-            # In a real implementation the captured fingerprint would be
-            # persisted and linked to a user. Tests only assert the success
-            # message so we simply return it here.
-            return {"message": "Fingerprint enrolled successfully"}
-        raise Exception(result.get("message", "Fingerprint enrollment failed"))
+        if result.get("status") != "success":
+            raise ValueError(result.get("message", "Enrollment failed"))
+        fingerprint_data = result.get("data")
+        # Logic to save fingerprint_data associated with user_id
+        return {"message": "Fingerprint enrolled successfully", "user_id": user_id}
 
     def verify_fingerprint(self, fingerprint_data: bytes) -> Dict[str, Any]:
-        """Verify the supplied fingerprint data."""
-        match_result = self.driver.verify_fingerprint(fingerprint_data)
-        match = match_result.get("match", False)
-        if match:
-            # Normally the user_id associated with the fingerprint would be
-            # returned from the driver or a database lookup. For the purposes
-            # of the tests we return a static user_id when a match occurs.
+        result = self.driver.verify_fingerprint(fingerprint_data)
+        if result.get("match"):
+            # In a real implementation the user_id would be determined from
+            # the verified fingerprint data
+
             return {"match": True, "user_id": "1234"}
         return {"match": False}

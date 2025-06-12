@@ -1,6 +1,5 @@
 from fastapi import FastAPI
-
-from api.endpoints import enrollment, verification
+from src.api.endpoints import enrollment, verification
 
 app = FastAPI()
 
