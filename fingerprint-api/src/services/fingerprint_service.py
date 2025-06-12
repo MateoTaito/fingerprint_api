@@ -1,10 +1,10 @@
 from typing import Any, Dict
 
-from .digitalpersona_driver import DigitalPersonaDriver
+from .libfprint_driver import LibfprintDriver
 
 class FingerprintService:
     def __init__(self) -> None:
-        self.driver = DigitalPersonaDriver()
+        self.driver = LibfprintDriver()
 
     def enroll_fingerprint(self, user_id: str, fingerprint_data: bytes) -> Dict[str, Any]:
 

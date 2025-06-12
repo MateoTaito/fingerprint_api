@@ -1,6 +1,6 @@
 # Fingerprint API
 
-This project is a FastAPI application designed to communicate with a DigitalPersona 4500 fingerprint reader connected to a Raspberry Pi. It provides endpoints for enrolling new fingerprints and verifying existing ones, facilitating frontend validation.
+This project is a FastAPI application designed to communicate with fingerprint readers using the `libfprint` library. It provides endpoints for enrolling new fingerprints and verifying existing ones, facilitating frontend validation.
 
 ## Features
 
