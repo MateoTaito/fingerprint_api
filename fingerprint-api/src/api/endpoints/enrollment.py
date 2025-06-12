@@ -1,13 +1,18 @@
 from fastapi import APIRouter, HTTPException
-from services.fingerprint_service import FingerprintService
+from pydantic import BaseModel
+from src.services.fingerprint_service import FingerprintService
 
 router = APIRouter()
 fingerprint_service = FingerprintService()
 
+class EnrollRequest(BaseModel):
+    user_id: str
+
+
 @router.post("/fingerprints/enroll")
-def enroll_fingerprint(user_id: str, fingerprint_data: bytes):
+def enroll_fingerprint(request: EnrollRequest):
     try:
-        fingerprint_service.enroll_fingerprint(user_id, fingerprint_data)
-        return {"message": "Fingerprint enrolled successfully"}
+        result = fingerprint_service.enroll_fingerprint(request.user_id)
+        return result
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
