@@ -23,7 +23,8 @@ def main():
         print("1. Enroll User")
         print("2. Verify User")
         print("3. List Users")
-        print("4. Exit")
+        print("4. Delete User")
+        print("5. Exit")
         choice = input("Select an option: ")
 
         if choice == "1":
@@ -33,6 +34,8 @@ def main():
         elif choice == "3":
             user_controller.list_users()
         elif choice == "4":
+            enrollment_controller.delete_user()
+        elif choice == "5":
             print("Exiting the application...")
             break
         else:

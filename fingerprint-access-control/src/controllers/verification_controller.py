@@ -10,17 +10,18 @@ class VerificationController:
 
     def verify_user(self):
         print("\n=== User Verification ===")
-        print("Please place your finger on the scanner...")
-        
+        username = input("Enter username to verify: ")
+        finger = input("Enter finger to verify (e.g. right-index-finger, leave blank to try any): ")
         try:
-            # Here you would integrate with actual fingerprint hardware
-            # For now, simulate by asking for username
-            username = input("Enter username to simulate verification: ")
             user = self.user_service.get_user(username)
-            
-            print(f"Access granted for user: {username}")
-            return True
-            
+            print("Please place your finger on the scanner...")
+            success = self.fingerprint_service.verify_fingerprint(username, finger if finger else None)
+            if success:
+                print(f"Access granted for user: {username}")
+                return True
+            else:
+                print(f"Access denied for user: {username}")
+                return False
         except ValueError as e:
             print(f"Access denied: {e}")
             return False
