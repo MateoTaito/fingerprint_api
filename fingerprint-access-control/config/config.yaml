@@ -1,0 +1,28 @@
+application:
+  name: Fingerprint Access Control
+  version: 1.0
+  description: A system for managing access control using fingerprint recognition.
+
+database:
+  type: sqlite
+  path: data/access_control.db
+
+logging:
+  level: INFO
+  file: logs/access.log
+
+fingerprint:
+  enrollment_timeout: 60
+  verification_timeout: 10
+
+users:
+  max_fingerprints_per_user: 5
+
+security:
+  password_hashing_algorithm: bcrypt
+  token_expiration: 3600  # in seconds
+
+features:
+  enable_enrollment: true
+  enable_verification: true
+  enable_logging: true
