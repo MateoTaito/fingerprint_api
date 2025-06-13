@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from models.user import User
 from services.user_service import UserService
+from services.fingerprint_service import FingerprintService
+import pwd
 
 user_controller = Blueprint('user_controller', __name__)
 
@@ -48,6 +50,7 @@ class UserController:
     def __init__(self, db_service):
         self.db_service = db_service
         self.user_service = UserService(db_service)
+        self.fingerprint_service = FingerprintService()
 
     def list_users(self):
         try:
@@ -57,7 +60,13 @@ class UserController:
                 print("No users registered yet.")
             else:
                 for user in users:
-                    print(f"- {user.username}")
+                    enrolled_fingers = self.fingerprint_service.get_enrolled_fingers(user.username)
+                    flag = "[✔]" if enrolled_fingers else "[ ]"
+                    if enrolled_fingers:
+                        print(f"- {user.username} {flag} [fprintd] (/var/lib/fprint/)")
+                        print(f"    Dedos enrolados: {', '.join(enrolled_fingers)}")
+                    else:
+                        print(f"- {user.username} {flag}")
         except Exception as e:
             print(f"Error listing users: {e}")
 
@@ -80,3 +89,21 @@ class UserController:
             print(f"Error: {e}")
         except Exception as e:
             print(f"An error occurred: {e}")
+    
+    def identify_user_by_fingerprint(self):
+        print("\n=== Identificación biométrica (simulada) ===")
+        username = self.fingerprint_service.identify_user_by_fingerprint()
+        if username:
+            print(f"Usuario identificado: {username}")
+            return username
+        else:
+            print("No se pudo identificar al usuario por huella.")
+            return None
+    
+    def verify_fingerprint(self, username, finger=None):
+        """Verify fingerprint for a user (simulated or real)"""
+        try:
+            return self.fingerprint_service.verify_fingerprint(username, finger)
+        except Exception as e:
+            print(f"Verification error: {e}")
+            return False

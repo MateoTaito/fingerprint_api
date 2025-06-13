@@ -313,3 +313,84 @@ class FingerprintService:
         input()
         print("✅ Simulated verification completed successfully!")
         return True
+
+    def identify_user_by_fingerprint(self, possible_usernames=None):
+        """Identifica el usuario colocando la huella, sin pedir username. Fallback a verificación secuencial si Identify no está disponible."""
+        if not self.fingerprint_available:
+            print("⚠️ Fingerprint service not available - identificación simulada")
+            print("Presiona Enter para simular identificación...")
+            input()
+            print("Usuario simulado identificado: demo_user")
+            return "demo_user"
+        try:
+            print("\n=== Identificación biométrica ===")
+            print("Coloca tu dedo en el lector para identificarte...")
+            # Intentar identificación directa
+            if possible_usernames is None:
+                possible_usernames = [user.pw_name for user in pwd.getpwall() if user.pw_uid >= 1000]
+                possible_usernames.append('root')
+                possible_usernames = list(set(possible_usernames))
+            # Fallback: verificación secuencial si IdentifyStatus no está disponible
+            if not hasattr(self.device, 'IdentifyStatus'):
+                print("⚠️ Identificación directa no soportada, usando verificación secuencial...")
+                for username in possible_usernames:
+                    enrolled_fingers = self.get_enrolled_fingers(username)
+                    if not enrolled_fingers:
+                        continue
+                    for finger in enrolled_fingers:
+                        print(f"Intentando verificar con usuario: {username}, dedo: {finger}")
+                        if self.verify_fingerprint(username, finger):
+                            print(f"✅ Usuario identificado: {username}")
+                            return username
+                print("❌ No se pudo identificar al usuario por huella.")
+                return None
+            # Si existe IdentifyStatus, intentar identificación directa
+            self.identify_result = None
+            def on_identify_status(result, username, finger, done):
+                print(f"Identify status: {result}, username: {username}, finger: {finger}, done: {done}")
+                if result == "identify-match":
+                    print(f"✅ Usuario identificado: {username} (dedo: {finger})")
+                    self.identify_result = username
+                    if self.loop:
+                        self.loop.quit()
+                elif result == "identify-no-match":
+                    print("❌ No se encontró coincidencia de huella")
+                    self.identify_result = None
+                    if self.loop:
+                        self.loop.quit()
+                elif result == "identify-retry-scan":
+                    print("🔄 Reintenta el escaneo")
+                elif result == "identify-swipe-too-short":
+                    print("⚡ Deslizamiento muy corto, intenta de nuevo")
+            self.device.IdentifyStatus.connect(on_identify_status)
+            self.device.IdentifyStart(possible_usernames)
+            self.loop = GLib.MainLoop()
+            GLib.timeout_add_seconds(30, lambda: self.loop.quit())
+            print("⏳ Esperando identificación... (30 segundos máximo)")
+            self.loop.run()
+            self.device.IdentifyStop()
+            self.device.Release()
+            return self.identify_result
+        except Exception as e:
+            print(f"⚠️ Error durante la identificación: {e}")
+            try:
+                self.device.Release()
+            except:
+                pass
+            # Fallback: verificación secuencial si ocurre cualquier error
+            print("⚠️ Fallback a verificación secuencial...")
+            if possible_usernames is None:
+                possible_usernames = [user.pw_name for user in pwd.getpwall() if user.pw_uid >= 1000]
+                possible_usernames.append('root')
+                possible_usernames = list(set(possible_usernames))
+            for username in possible_usernames:
+                enrolled_fingers = self.get_enrolled_fingers(username)
+                if not enrolled_fingers:
+                    continue
+                for finger in enrolled_fingers:
+                    print(f"Intentando verificar con usuario: {username}, dedo: {finger}")
+                    if self.verify_fingerprint(username, finger):
+                        print(f"✅ Usuario identificado: {username}")
+                        return username
+            print("❌ No se pudo identificar al usuario por huella.")
+            return None

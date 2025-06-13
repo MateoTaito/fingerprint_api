@@ -25,6 +25,7 @@ def main():
         print("3. List Users")
         print("4. Delete User")
         print("5. Exit")
+        print("6. Identify User by Fingerprint")
         choice = input("Select an option: ")
 
         if choice == "1":
@@ -38,6 +39,8 @@ def main():
         elif choice == "5":
             print("Exiting the application...")
             break
+        elif choice == "6":
+            user_controller.identify_user_by_fingerprint()
         else:
             print("Invalid option. Please try again.")
 
