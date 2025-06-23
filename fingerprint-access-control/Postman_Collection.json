@@ -1,0 +1,397 @@
+{
+	"info": {
+		"_postman_id": "fingerprint-api-collection",
+		"name": "Fingerprint Access Control API",
+		"description": "Collection for testing the Fingerprint Access Control API endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/health",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"health"
+					]
+				},
+				"description": "Check if the API is running"
+			}
+		},
+		{
+			"name": "Create User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"john_doe\",\n    \"password\": \"secure_password\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users"
+					]
+				},
+				"description": "Create a new user"
+			}
+		},
+		{
+			"name": "List Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users"
+					]
+				},
+				"description": "Get list of all users"
+			}
+		},
+		{
+			"name": "Get User",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/users/john_doe",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"john_doe"
+					]
+				},
+				"description": "Get specific user information"
+			}
+		},
+		{
+			"name": "Delete User",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/users/john_doe",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"john_doe"
+					]
+				},
+				"description": "Delete a user"
+			}
+		},
+		{
+			"name": "Enroll Fingerprint",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"finger\": \"right-index-finger\",\n    \"label\": \"Primary finger\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/enrollment/john_doe",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"enrollment",
+						"john_doe"
+					]
+				},
+				"description": "Enroll fingerprint for existing user"
+			}
+		},
+		{
+			"name": "Create User with Fingerprint",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"jane_doe\",\n    \"password\": \"secure_password\",\n    \"finger\": \"right-index-finger\",\n    \"label\": \"Primary finger\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/enrollment/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"enrollment",
+						"user"
+					]
+				},
+				"description": "Create new user and enroll fingerprint"
+			}
+		},
+		{
+			"name": "Get Enrolled Fingers",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/enrollment/john_doe/fingers",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"enrollment",
+						"john_doe",
+						"fingers"
+					]
+				},
+				"description": "Get list of enrolled fingers for user"
+			}
+		},
+		{
+			"name": "Verify Fingerprint (Any User)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"finger\": \"right-index-finger\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/verification",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"verification"
+					]
+				},
+				"description": "Verify fingerprint and identify user"
+			}
+		},
+		{
+			"name": "Verify Fingerprint (Specific User)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"finger\": \"right-index-finger\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/verification/john_doe",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"verification",
+						"john_doe"
+					]
+				},
+				"description": "Verify fingerprint for specific user"
+			}
+		},
+		{
+			"name": "Simulate Verification (Success)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"john_doe\",\n    \"success\": true\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/verification/simulate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"verification",
+						"simulate"
+					]
+				},
+				"description": "Simulate successful fingerprint verification"
+			}
+		},
+		{
+			"name": "Simulate Verification (Failure)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"john_doe\",\n    \"success\": false\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/verification/simulate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"verification",
+						"simulate"
+					]
+				},
+				"description": "Simulate failed fingerprint verification"
+			}
+		},
+		{
+			"name": "Verify User Fingerprint",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"finger\": \"right-index-finger\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/john_doe/verify",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"john_doe",
+						"verify"
+					]
+				},
+				"description": "Verify fingerprint for user via users endpoint"
+			}
+		},
+		{
+			"name": "Delete Specific Fingerprint",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/enrollment/john_doe/right-index-finger",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"enrollment",
+						"john_doe",
+						"right-index-finger"
+					]
+				},
+				"description": "Delete a specific fingerprint for a user"
+			}
+		},
+		{
+			"name": "Delete All User Fingerprints",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/enrollment/john_doe/all",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"enrollment",
+						"john_doe",
+						"all"
+					]
+				},
+				"description": "Delete all fingerprints for a user"
+			}
+		}
+	]
+}

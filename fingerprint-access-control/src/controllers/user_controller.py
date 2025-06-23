@@ -1,109 +1,145 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from models.user import User
 from services.user_service import UserService
 from services.fingerprint_service import FingerprintService
-import pwd
 
-user_controller = Blueprint('user_controller', __name__)
+user_bp = Blueprint('users', __name__)
 
-@user_controller.route('/users', methods=['POST'])
+@user_bp.route('', methods=['POST'])
 def create_user():
-    data = request.json
-    username = data.get('username')
-    password = data.get('password')
-    
-    if not username or not password:
-        return jsonify({'error': 'Username and password are required'}), 400
-    
-    user = User(username=username, password=password)
-    result = UserService().register_user(user)
-    
-    if result:
-        return jsonify({'message': 'User created successfully'}), 201
-    else:
-        return jsonify({'error': 'User already exists'}), 409
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No JSON data provided'}), 400
+            
+        username = data.get('username')
+        password = data.get('password')
+        
+        if not username or not password:
+            return jsonify({'error': 'Username and password are required'}), 400
+        
+        # Get db_service from app context
+        db_service = current_app.db_service
+        user_service = UserService(db_service)
+        
+        # Create new user
+        user = user_service.register_user(username, password)
+        
+        return jsonify({
+            'message': 'User created successfully',
+            'user': {
+                'id': user.id,
+                'username': user.username
+            }
+        }), 201
+        
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 409
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
-@user_controller.route('/users/<username>', methods=['GET'])
+@user_bp.route('/<username>', methods=['GET'])
 def get_user(username):
-    user = UserService().get_user_by_username(username)
-    
-    if user:
-        return jsonify({'username': user.username, 'fingerprints': user.fingerprints}), 200
-    else:
-        return jsonify({'error': 'User not found'}), 404
+    try:
+        db_service = current_app.db_service
+        user_service = UserService(db_service)
+        
+        user = user_service.get_user(username)
+        
+        # Safely access fingerprints
+        try:
+            fingerprints_count = len(user.fingerprints) if hasattr(user, 'fingerprints') and user.fingerprints is not None else 0
+        except:
+            fingerprints_count = 0
+        
+        return jsonify({
+            'id': user.id,
+            'username': user.username,
+            'fingerprints_count': fingerprints_count
+        }), 200
+        
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
-@user_controller.route('/users/<username>', methods=['DELETE'])
+@user_bp.route('/<username>', methods=['DELETE'])
 def delete_user(username):
-    result = UserService().delete_user(username)
-    
-    if result:
-        return jsonify({'message': 'User deleted successfully'}), 200
-    else:
-        return jsonify({'error': 'User not found'}), 404
+    try:
+        db_service = current_app.db_service
+        user_service = UserService(db_service)
+        
+        user_service.delete_user(username)
+        
+        return jsonify({'message': f'User {username} deleted successfully'}), 200
+        
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
-@user_controller.route('/users', methods=['GET'])
+@user_bp.route('', methods=['GET'])
 def list_users():
-    users = UserService().get_all_users()
-    return jsonify(users), 200
+    try:
+        db_service = current_app.db_service
+        user_service = UserService(db_service)
+        
+        users = user_service.list_users()
+        
+        users_data = []
+        for user in users:
+            # Safely access fingerprints, defaulting to empty list if None or access fails
+            try:
+                fingerprints_count = len(user.fingerprints) if hasattr(user, 'fingerprints') and user.fingerprints is not None else 0
+            except:
+                fingerprints_count = 0
+                
+            users_data.append({
+                'id': user.id,
+                'username': user.username,
+                'fingerprints_count': fingerprints_count
+            })
+        
+        return jsonify({
+            'users': users_data,
+            'total': len(users_data)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
-class UserController:
-    def __init__(self, db_service):
-        self.db_service = db_service
-        self.user_service = UserService(db_service)
-        self.fingerprint_service = FingerprintService()
-
-    def list_users(self):
-        try:
-            users = self.user_service.list_users()
-            print("\n=== Registered Users ===")
-            if not users:
-                print("No users registered yet.")
-            else:
-                for user in users:
-                    enrolled_fingers = self.fingerprint_service.get_enrolled_fingers(user.username)
-                    flag = "[✔]" if enrolled_fingers else "[ ]"
-                    if enrolled_fingers:
-                        print(f"- {user.username} {flag} [fprintd] (/var/lib/fprint/)")
-                        print(f"    Dedos enrolados: {', '.join(enrolled_fingers)}")
-                    else:
-                        print(f"- {user.username} {flag}")
-        except Exception as e:
-            print(f"Error listing users: {e}")
-
-    def delete_user(self, username):
-        try:
-            self.user_service.delete_user(username)
-            print(f"User '{username}' deleted successfully!")
-        except ValueError as e:
-            print(f"Error: {e}")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-
-    def get_user_info(self, username):
-        try:
-            user = self.user_service.get_user(username)
-            print(f"\n=== User Information ===")
-            print(f"Username: {user.username}")
-            # Add more user details as needed
-        except ValueError as e:
-            print(f"Error: {e}")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-    
-    def identify_user_by_fingerprint(self):
-        print("\n=== Identificación biométrica (simulada) ===")
-        username = self.fingerprint_service.identify_user_by_fingerprint()
-        if username:
-            print(f"Usuario identificado: {username}")
-            return username
+@user_bp.route('/<username>/verify', methods=['POST'])
+def verify_user_fingerprint(username):
+    try:
+        data = request.get_json()
+        finger = data.get('finger') if data else None
+        
+        db_service = current_app.db_service
+        user_service = UserService(db_service)
+        fingerprint_service = FingerprintService()
+        
+        # Check if user exists
+        user = user_service.get_user(username)
+        
+        # Simulate fingerprint verification
+        verification_result = fingerprint_service.verify_fingerprint(username, finger)
+        
+        if verification_result:
+            return jsonify({
+                'message': f'Fingerprint verification successful for user {username}',
+                'verified': True,
+                'user': {
+                    'id': user.id,
+                    'username': user.username
+                }
+            }), 200
         else:
-            print("No se pudo identificar al usuario por huella.")
-            return None
-    
-    def verify_fingerprint(self, username, finger=None):
-        """Verify fingerprint for a user (simulated or real)"""
-        try:
-            return self.fingerprint_service.verify_fingerprint(username, finger)
-        except Exception as e:
-            print(f"Verification error: {e}")
-            return False
+            return jsonify({
+                'message': 'Fingerprint verification failed',
+                'verified': False
+            }), 401
+            
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500

@@ -1,48 +1,69 @@
-# Entry point of the fingerprint access control application
+# Entry point of the fingerprint access control API
 
-import sys
+from flask import Flask, jsonify
+from flask_sqlalchemy import SQLAlchemy
 from services.database_service import DatabaseService
-from controllers.enrollment_controller import EnrollmentController
-from controllers.verification_controller import VerificationController
-from controllers.user_controller import UserController
+from controllers.enrollment_controller import enrollment_bp
+from controllers.verification_controller import verification_bp
+from controllers.user_controller import user_bp
 
-def main():
-    # Initialize the database connection with SQLite database
+def create_app():
+    app = Flask(__name__)
+    
+    # Configuration
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fingerprint_access.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
+    
+    # Initialize database
     db_url = "sqlite:///fingerprint_access.db"
     db_service = DatabaseService(db_url)
     db_service.create_tables()
+    
+    # Store db_service in app context for controllers to access
+    app.db_service = db_service
+    
+    # Register blueprints
+    app.register_blueprint(enrollment_bp, url_prefix='/api/enrollment')
+    app.register_blueprint(verification_bp, url_prefix='/api/verification')
+    app.register_blueprint(user_bp, url_prefix='/api/users')
+    
+    # Health check endpoint
+    @app.route('/api/health', methods=['GET'])
+    def health_check():
+        return jsonify({
+            'status': 'healthy',
+            'message': 'Fingerprint Access Control API is running'
+        }), 200
+    
+    # Error handlers
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({'error': 'Endpoint not found'}), 404
+    
+    @app.errorhandler(500)
+    def internal_error(error):
+        return jsonify({'error': 'Internal server error'}), 500
+    
+    return app
 
-    # Initialize controllers
-    enrollment_controller = EnrollmentController(db_service)
-    verification_controller = VerificationController(db_service)
-    user_controller = UserController(db_service)
-
-    # Start the main application loop
-    while True:
-        print("\n=== Fingerprint Access Control System ===")
-        print("1. Enroll User")
-        print("2. Verify User")
-        print("3. List Users")
-        print("4. Delete User")
-        print("5. Exit")
-        print("6. Identify User by Fingerprint")
-        choice = input("Select an option: ")
-
-        if choice == "1":
-            enrollment_controller.enroll_user()
-        elif choice == "2":
-            verification_controller.verify_user()
-        elif choice == "3":
-            user_controller.list_users()
-        elif choice == "4":
-            enrollment_controller.delete_user()
-        elif choice == "5":
-            print("Exiting the application...")
-            break
-        elif choice == "6":
-            user_controller.identify_user_by_fingerprint()
-        else:
-            print("Invalid option. Please try again.")
+def main():
+    app = create_app()
+    print("Starting Fingerprint Access Control API...")
+    print("Available endpoints:")
+    print("- GET  /api/health - Health check")
+    print("- POST /api/users - Create user")
+    print("- GET  /api/users - List all users")
+    print("- GET  /api/users/{username} - Get specific user")
+    print("- DELETE /api/users/{username} - Delete user")
+    print("- POST /api/enrollment/{username} - Enroll fingerprint")
+    print("- POST /api/verification - Verify fingerprint (identify any user)")
+    print("- POST /api/verification/{username} - Verify fingerprint (specific user)")
+    print("- DELETE /api/enrollment/{username}/{finger} - Delete specific fingerprint")
+    print("- DELETE /api/enrollment/{username}/all - Delete all user fingerprints")
+    print("\nAPI running on http://localhost:5000")
+    
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
 if __name__ == "__main__":
     main()

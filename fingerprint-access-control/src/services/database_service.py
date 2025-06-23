@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 from database import Base
 from models.user import User
@@ -18,6 +18,9 @@ class DatabaseService:
         try:
             session.add(user)
             session.commit()
+            # Refresh to get the ID and detach from session
+            session.refresh(user)
+            session.expunge(user)
             return user
         except SQLAlchemyError as e:
             session.rollback()
@@ -29,7 +32,10 @@ class DatabaseService:
     def get_user_by_username(self, username):
         session = self.Session()
         try:
-            return session.query(User).filter(User.username == username).first()
+            user = session.query(User).options(joinedload(User.fingerprints)).filter(User.username == username).first()
+            if user:
+                session.expunge(user)  # Detach from session
+            return user
         except SQLAlchemyError as e:
             print(f"Error retrieving user: {e}")
             return None
@@ -39,7 +45,10 @@ class DatabaseService:
     def get_user(self, user_id):
         session = self.Session()
         try:
-            return session.query(User).filter(User.id == user_id).first()
+            user = session.query(User).options(joinedload(User.fingerprints)).filter(User.id == user_id).first()
+            if user:
+                session.expunge(user)  # Detach from session
+            return user
         except SQLAlchemyError as e:
             print(f"Error retrieving user: {e}")
             return None
@@ -49,7 +58,12 @@ class DatabaseService:
     def get_all_users(self):
         session = self.Session()
         try:
-            return session.query(User).all()
+            # Use joinedload to eagerly load fingerprints relationship
+            users = session.query(User).options(joinedload(User.fingerprints)).all()
+            # Detach from session to avoid lazy loading issues
+            for user in users:
+                session.expunge(user)
+            return users
         except SQLAlchemyError as e:
             print(f"Error retrieving users: {e}")
             return []

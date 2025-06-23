@@ -1,1 +1,7 @@
-[]
+[
+  {
+    "username": "test_user",
+    "finger": "right-index-finger",
+    "label": "Primary finger"
+  }
+]

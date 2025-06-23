@@ -252,6 +252,43 @@ class FingerprintService:
                 pass
             return False
 
+    def delete_all_user_fingerprints(self, username):
+        """Eliminar todas las huellas enrolladas de un usuario"""
+        if not self.fingerprint_available:
+            print("⚠️ Fingerprint service not available - simulating deletion of all fingerprints")
+            return True
+        
+        try:
+            # Get all enrolled fingers for the user
+            enrolled_fingers = self.get_enrolled_fingers(username)
+            
+            if not enrolled_fingers:
+                print(f"ℹ️ No enrolled fingerprints found for user {username}")
+                return True
+            
+            print(f"🗑️ Deleting {len(enrolled_fingers)} fingerprints for user {username}...")
+            
+            success_count = 0
+            for finger in enrolled_fingers:
+                if self.delete_enrolled_finger(username, finger):
+                    success_count += 1
+                else:
+                    print(f"⚠️ Failed to delete {finger} for user {username}")
+            
+            # Remove all labels for this user
+            self.remove_all_user_fingerprint_labels(username)
+            
+            if success_count == len(enrolled_fingers):
+                print(f"✅ All {success_count} fingerprints deleted successfully for user {username}")
+                return True
+            else:
+                print(f"⚠️ Only {success_count}/{len(enrolled_fingers)} fingerprints deleted for user {username}")
+                return False
+                
+        except Exception as e:
+            print(f"⚠️ Error deleting all fingerprints for user {username}: {e}")
+            return False
+
     def list_all_enrolled_fingerprints(self):
         """Listar todas las huellas enrolladas en el sistema"""
         if not self.fingerprint_available:
@@ -393,4 +430,66 @@ class FingerprintService:
                         print(f"✅ Usuario identificado: {username}")
                         return username
             print("❌ No se pudo identificar al usuario por huella.")
+            return None
+
+    def add_fingerprint_label(self, username, finger, label):
+        """Agregar o actualizar etiqueta para una huella"""
+        try:
+            # Buscar si ya existe una entrada para este usuario y dedo
+            for item in self.fingerprints_with_labels:
+                if item['username'] == username and item['finger'] == finger:
+                    item['label'] = label
+                    self.save_fingerprints_labels()
+                    return
+            
+            # Si no existe, agregar nueva entrada
+            self.fingerprints_with_labels.append({
+                'username': username,
+                'finger': finger,
+                'label': label
+            })
+            self.save_fingerprints_labels()
+            print(f"📝 Label '{label}' added for {username} - {finger}")
+            
+        except Exception as e:
+            print(f"⚠️ Error adding fingerprint label: {e}")
+
+    def remove_fingerprint_label(self, username, finger):
+        """Eliminar etiqueta para una huella específica"""
+        try:
+            self.fingerprints_with_labels = [
+                item for item in self.fingerprints_with_labels 
+                if not (item['username'] == username and item['finger'] == finger)
+            ]
+            self.save_fingerprints_labels()
+            print(f"🗑️ Label removed for {username} - {finger}")
+            
+        except Exception as e:
+            print(f"⚠️ Error removing fingerprint label: {e}")
+
+    def remove_all_user_fingerprint_labels(self, username):
+        """Eliminar todas las etiquetas de un usuario"""
+        try:
+            original_count = len(self.fingerprints_with_labels)
+            self.fingerprints_with_labels = [
+                item for item in self.fingerprints_with_labels 
+                if item['username'] != username
+            ]
+            removed_count = original_count - len(self.fingerprints_with_labels)
+            self.save_fingerprints_labels()
+            print(f"🗑️ Removed {removed_count} labels for user {username}")
+            
+        except Exception as e:
+            print(f"⚠️ Error removing all labels for user {username}: {e}")
+
+    def get_fingerprint_label(self, username, finger):
+        """Obtener etiqueta para una huella específica"""
+        try:
+            for item in self.fingerprints_with_labels:
+                if item['username'] == username and item['finger'] == finger:
+                    return item['label']
+            return None
+            
+        except Exception as e:
+            print(f"⚠️ Error getting fingerprint label: {e}")
             return None
