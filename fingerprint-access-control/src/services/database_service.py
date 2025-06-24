@@ -109,10 +109,29 @@ class DatabaseService:
     def get_fingerprints_by_user(self, user_id):
         session = self.Session()
         try:
-            return session.query(Fingerprint).filter(Fingerprint.user_id == user_id).all()
+            fingerprints = session.query(Fingerprint).filter(Fingerprint.user_id == user_id).all()
+            # Detach from session
+            for fp in fingerprints:
+                session.expunge(fp)
+            return fingerprints
         except SQLAlchemyError as e:
             print(f"Error retrieving fingerprints: {e}")
             return []
+        finally:
+            session.close()
+
+    def delete_fingerprint(self, fingerprint):
+        """Delete a specific fingerprint record from the database"""
+        session = self.Session()
+        try:
+            # Get the fingerprint from this session
+            fingerprint_in_session = session.merge(fingerprint)
+            session.delete(fingerprint_in_session)
+            session.commit()
+        except SQLAlchemyError as e:
+            session.rollback()
+            print(f"Error deleting fingerprint: {e}")
+            raise
         finally:
             session.close()
 

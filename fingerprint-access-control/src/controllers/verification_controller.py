@@ -8,9 +8,6 @@ verification_bp = Blueprint('verification', __name__)
 def verify_fingerprint():
     """Verify fingerprint and identify user"""
     try:
-        data = request.get_json()
-        finger = data.get('finger') if data else None
-        
         # Get db_service from app context
         db_service = current_app.db_service
         user_service = UserService(db_service)
@@ -26,33 +23,44 @@ def verify_fingerprint():
                 'access_granted': False
             }), 404
         
-        # Try to verify fingerprint against each user
-        for user in users:
-            try:
-                print(f"🔍 Trying to verify fingerprint for user: {user.username}")
-                success = fingerprint_service.verify_fingerprint(user.username, finger)
-                
-                if success:
-                    return jsonify({
-                        'message': f'Fingerprint verification successful for user {user.username}',
-                        'verified': True,
-                        'user': {
-                            'id': user.id,
-                            'username': user.username
-                        },
-                        'access_granted': True
-                    }), 200
-                    
-            except Exception as e:
-                print(f"⚠️ Error verifying user {user.username}: {e}")
-                continue
+        # Extract usernames for identification
+        usernames = [user.username for user in users]
         
-        # If no user matched
-        return jsonify({
-            'message': 'Fingerprint verification failed - no matching user found',
-            'verified': False,
-            'access_granted': False
-        }), 401
+        print(f"🔍 Starting fingerprint identification for users: {usernames}")
+        
+        # Use identify_user_smart for optimized identification
+        identified_username = fingerprint_service.identify_user_smart(usernames)
+        
+        if identified_username:
+            # Find the user object for the identified username
+            identified_user = None
+            for user in users:
+                if user.username == identified_username:
+                    identified_user = user
+                    break
+            
+            if identified_user:
+                return jsonify({
+                    'message': f'Fingerprint verification successful for user {identified_username}',
+                    'verified': True,
+                    'user': {
+                        'id': identified_user.id,
+                        'username': identified_user.username
+                    },
+                    'access_granted': True
+                }), 200
+            else:
+                return jsonify({
+                    'message': 'User identified but not found in database',
+                    'verified': False,
+                    'access_granted': False
+                }), 404
+        else:
+            return jsonify({
+                'message': 'Fingerprint verification failed - no matching user found',
+                'verified': False,
+                'access_granted': False
+            }), 401
             
     except Exception as e:
         return jsonify({'error': f'Internal server error: {str(e)}'}), 500

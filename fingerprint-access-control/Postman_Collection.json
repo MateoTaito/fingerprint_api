@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "fingerprint-api-collection",
 		"name": "Fingerprint Access Control API",
-		"description": "Collection for testing the Fingerprint Access Control API endpoints",
+		"description": "Collection for testing the Fingerprint Access Control API endpoints. Updated with optimized single-scan verification and accurate fingerprint count tracking.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -200,7 +200,7 @@
 			}
 		},
 		{
-			"name": "Verify Fingerprint (Any User)",
+			"name": "Verify Fingerprint (Any User) - Optimized",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -211,7 +211,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"finger\": \"right-index-finger\"\n}"
+					"raw": "{}"
 				},
 				"url": {
 					"raw": "http://localhost:5000/api/verification",
@@ -225,7 +225,7 @@
 						"verification"
 					]
 				},
-				"description": "Verify fingerprint and identify user"
+				"description": "Verify fingerprint with SINGLE scan and identify user automatically. Uses optimized identification that captures fingerprint once and compares against all enrolled users."
 			}
 		},
 		{

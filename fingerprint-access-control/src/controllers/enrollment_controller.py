@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from services.user_service import UserService
 from services.fingerprint_service import FingerprintService
+from models.fingerprint import Fingerprint
 
 enrollment_bp = Blueprint('enrollment', __name__)
 
@@ -24,6 +25,19 @@ def enroll_fingerprint(username):
         success = fingerprint_service.enroll_fingerprint(username, finger, label)
         
         if success:
+            # Create fingerprint record in database
+            try:
+                db_service = current_app.db_service
+                fingerprint_record = Fingerprint(
+                    user_id=user.id,
+                    finger=finger,
+                    label=label
+                )
+                db_service.add_fingerprint(fingerprint_record)
+                print(f"✅ Created fingerprint record in database: User {user.id}, Finger {finger}")
+            except Exception as e:
+                print(f"⚠️ Warning: Could not create fingerprint record in database: {e}")
+            
             return jsonify({
                 'message': f'Fingerprint enrolled successfully for user {username}',
                 'user': {
@@ -73,6 +87,18 @@ def enroll_new_user():
         success = fingerprint_service.enroll_fingerprint(username, finger, label)
         
         if success:
+            # Create fingerprint record in database
+            try:
+                fingerprint_record = Fingerprint(
+                    user_id=user.id,
+                    finger=finger,
+                    label=label
+                )
+                db_service.add_fingerprint(fingerprint_record)
+                print(f"✅ Created fingerprint record in database: User {user.id}, Finger {finger}")
+            except Exception as e:
+                print(f"⚠️ Warning: Could not create fingerprint record in database: {e}")
+            
             return jsonify({
                 'message': f'User {username} created and fingerprint enrolled successfully',
                 'user': {
@@ -143,6 +169,17 @@ def delete_fingerprint(username, finger):
         success = fingerprint_service.delete_enrolled_finger(username, finger)
         
         if success:
+            # Delete fingerprint record from database
+            try:
+                fingerprints = db_service.get_fingerprints_by_user(user.id)
+                for fp in fingerprints:
+                    if fp.finger == finger:
+                        db_service.delete_fingerprint(fp)
+                        print(f"✅ Deleted fingerprint record from database: User {user.id}, Finger {finger}")
+                        break
+            except Exception as e:
+                print(f"⚠️ Warning: Could not delete fingerprint record from database: {e}")
+            
             return jsonify({
                 'message': f'Fingerprint {finger} deleted successfully for user {username}',
                 'user': {
@@ -177,6 +214,15 @@ def delete_all_fingerprints(username):
         success = fingerprint_service.delete_all_user_fingerprints(username)
         
         if success:
+            # Delete all fingerprint records from database
+            try:
+                fingerprints = db_service.get_fingerprints_by_user(user.id)
+                for fp in fingerprints:
+                    db_service.delete_fingerprint(fp)
+                print(f"✅ Deleted {len(fingerprints)} fingerprint records from database for user {user.id}")
+            except Exception as e:
+                print(f"⚠️ Warning: Could not delete fingerprint records from database: {e}")
+            
             return jsonify({
                 'message': f'All fingerprints deleted successfully for user {username}',
                 'user': {

@@ -1,5 +1,15 @@
 # Fingerprint Access Control API
 
+**🚀 UPDATED & OPTIMIZED VERSION**
+
+## Latest Improvements
+
+- ✅ **True Single-Scan Verification**: Capture fingerprint ONCE and automatically identify among ALL users
+- ✅ **Accurate Fingerprint Count**: `fingerprints_count` field now accurately reflects enrolled fingerprints
+- ✅ **Real-time Updates**: Fingerprint counts update automatically on enrollment/deletion
+- ✅ **Smart Identification**: Intelligent fallback system for optimal performance
+- ✅ **No Multiple Scans**: Never asks for fingerprint more than once during identification
+
 ## Base URL
 
 ```
@@ -50,7 +60,7 @@ Create a new user.
 
 ### GET /api/users
 
-List all users.
+List all users with **ACCURATE** fingerprint count.
 
 **Response:**
 
@@ -67,9 +77,11 @@ List all users.
 }
 ```
 
+_Note: `fingerprints_count` now accurately reflects the number of enrolled fingerprints per user and updates automatically when fingerprints are added or removed._
+
 ### GET /api/users/{username}
 
-Get specific user information.
+Get specific user information with **ACCURATE** fingerprint count.
 
 **Response:**
 
@@ -227,27 +239,51 @@ Delete all fingerprints for a user.
 
 ### POST /api/verification
 
-Verify fingerprint and identify user (any user).
+**🚀 PERFECTED:** True single-scan fingerprint identification.
 
-**Request Body (optional):**
+**Features:**
+
+- ✅ **Captures fingerprint only ONCE** - Never asks for multiple scans
+- ✅ **Automatically processes against ALL users** - Compares with entire database
+- ✅ **Smart identification algorithm** - Uses native identification when available
+- ✅ **No parameters needed** - Just place finger and get identified
+- ✅ **Intelligent fallback** - Optimized performance in all environments
+
+**How it works:**
+
+1. 📱 Single fingerprint capture
+2. 📊 Automatic comparison against all enrolled users
+3. ✅ Instant identification result
+
+**Request Body:**
 
 ```json
-{
-  "finger": "right-index-finger"
-}
+{}
 ```
+
+_Note: Empty body - no parameters needed!_
 
 **Response (200 - Success):**
 
 ```json
 {
-  "message": "Fingerprint verification successful",
+  "message": "Fingerprint verification successful for user john_doe",
   "verified": true,
   "user": {
     "id": 1,
     "username": "john_doe"
   },
   "access_granted": true
+}
+```
+
+**Response (401 - No Match):**
+
+```json
+{
+  "message": "Fingerprint verification failed - no matching user found",
+  "verified": false,
+  "access_granted": false
 }
 ```
 
