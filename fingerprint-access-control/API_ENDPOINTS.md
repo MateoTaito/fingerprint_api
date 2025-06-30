@@ -235,6 +235,184 @@ Delete all fingerprints for a user.
 }
 ```
 
+### GET /api/enrollment/system/status
+
+Get comprehensive fingerprint enrollment status for the entire system.
+
+**Response:**
+
+```json
+{
+  "total_users": 3,
+  "users_with_fingerprints": 2,
+  "total_enrolled_fingerprints": 4,
+  "users": [
+    {
+      "id": 1,
+      "username": "john_doe",
+      "enrolled_fingers": [
+        {
+          "finger": "right-index-finger",
+          "label": "Primary Work Finger"
+        },
+        {
+          "finger": "left-thumb",
+          "label": "Backup"
+        }
+      ],
+      "fingerprints_count": 2
+    },
+    {
+      "id": 2,
+      "username": "jane_doe",
+      "enrolled_fingers": [
+        {
+          "finger": "right-index-finger",
+          "label": "Personal"
+        }
+      ],
+      "fingerprints_count": 1
+    },
+    {
+      "id": 3,
+      "username": "bob_smith",
+      "enrolled_fingers": [],
+      "fingerprints_count": 0
+    }
+  ],
+  "system_summary": {
+    "enrollment_percentage": 66.67,
+    "average_fingerprints_per_user": 2.0,
+    "most_used_fingers": [
+      ["right-index-finger", 2],
+      ["left-thumb", 1]
+    ],
+    "finger_distribution": {
+      "right-index-finger": 2,
+      "left-thumb": 1
+    }
+  }
+}
+```
+
+### GET /api/enrollment/search/{finger}
+
+Search for users who have enrolled a specific finger.
+
+**Parameters:**
+- `finger` (path): Finger name (e.g., "right-thumb", "left-index-finger")
+
+**Example Request:**
+
+```
+GET /api/enrollment/search/right-thumb
+```
+
+**Response:**
+
+```json
+{
+  "finger": "right-thumb",
+  "users_with_finger": [
+    {
+      "username": "john_doe",
+      "user_id": 1,
+      "label": "Primary thumb for office access"
+    },
+    {
+      "username": "alice_smith",
+      "user_id": 2,
+      "label": "Main identification finger"
+    }
+  ],
+  "total_users": 2,
+  "search_stats": {
+    "finger_popularity_rank": 1,
+    "percentage_of_users": 100.0,
+    "other_popular_fingers": ["right-index-finger", "left-thumb"]
+  }
+}
+```
+
+### GET /api/enrollment/analytics
+
+Get advanced system analytics including usage patterns, security insights, and recommendations.
+
+**Response:**
+
+```json
+{
+  "system_overview": {
+    "total_users": 2,
+    "total_fingerprints": 4,
+    "enrollment_rate": 20.0,
+    "average_fingers_per_user": 2.0
+  },
+  "finger_analytics": {
+    "most_popular_fingers": [
+      {
+        "finger": "right-thumb",
+        "count": 2,
+        "percentage": 50.0
+      },
+      {
+        "finger": "right-index-finger",
+        "count": 2,
+        "percentage": 50.0
+      }
+    ],
+    "least_used_fingers": [
+      "right-middle-finger",
+      "right-ring-finger",
+      "right-little-finger"
+    ],
+    "finger_distribution": {
+      "right_hand": 4,
+      "left_hand": 0,
+      "thumb_usage": 2,
+      "index_usage": 2
+    }
+  },
+  "user_patterns": {
+    "enrollment_distribution": {
+      "0_fingers": 0,
+      "1_finger": 0,
+      "2_fingers": 2,
+      "3_plus_fingers": 0
+    },
+    "common_finger_combinations": [
+      ["right-thumb", "right-index-finger"]
+    ],
+    "users_with_high_security": 0,
+    "users_needing_more_enrollment": 2
+  },
+  "security_insights": {
+    "single_point_of_failure_users": 0,
+    "well_protected_users": 2,
+    "recommended_additional_enrollments": [
+      {
+        "username": "john_doe",
+        "current_count": 2,
+        "recommended_fingers": ["left-thumb", "left-index-finger"]
+      }
+    ],
+    "security_score": 65.0,
+    "risk_assessment": "MEDIUM"
+  },
+  "recommendations": [
+    "Consider enrolling left-hand fingers for better redundancy",
+    "Encourage users to enroll at least 3 fingers for improved security",
+    "Balance finger usage across both hands",
+    "Current security level is MEDIUM - consider additional enrollments"
+  ],
+  "label_usage": {
+    "total_labeled_fingerprints": 4,
+    "labeling_rate": 100.0,
+    "common_label_themes": ["office", "access", "identification", "primary"]
+  }
+}
+```
+
 ## Fingerprint Verification
 
 ### POST /api/verification

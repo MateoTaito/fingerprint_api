@@ -3,5 +3,10 @@
     "username": "jane_doe",
     "finger": "right-index-finger",
     "label": "Primary finger"
+  },
+  {
+    "username": "ar_carr",
+    "finger": "right-index-finger",
+    "label": "Primary finger"
   }
 ]

@@ -21,6 +21,15 @@ def enroll_fingerprint(username):
         # Check if user exists
         user = user_service.get_user(username)
         
+        # Check if finger is already enrolled for this user
+        enrolled_fingers = fingerprint_service.get_enrolled_fingers(username)
+        if finger in enrolled_fingers:
+            return jsonify({
+                'error': f'Finger {finger} is already enrolled for user {username}',
+                'enrolled_fingers': enrolled_fingers,
+                'suggestion': 'Try a different finger or delete the existing enrollment first'
+            }), 409  # Conflict status code
+        
         # Simulate fingerprint enrollment
         success = fingerprint_service.enroll_fingerprint(username, finger, label)
         
@@ -237,5 +246,218 @@ def delete_all_fingerprints(username):
             
     except ValueError as e:
         return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+@enrollment_bp.route('/system/status', methods=['GET'])
+def get_system_fingerprint_status():
+    """Get comprehensive fingerprint enrollment status for the entire system"""
+    try:
+        # Get db_service from app context
+        db_service = current_app.db_service
+        user_service = UserService(db_service)
+        fingerprint_service = FingerprintService()
+        
+        # Get all users from database
+        users = user_service.list_users()
+        
+        system_status = {
+            'total_users': len(users),
+            'users_with_fingerprints': 0,
+            'total_enrolled_fingerprints': 0,
+            'users': [],
+            'system_summary': {}
+        }
+        
+        finger_distribution = {}
+        
+        for user in users:
+            enrolled_fingers = fingerprint_service.get_enrolled_fingers(user.username)
+            
+            user_info = {
+                'id': user.id,
+                'username': user.username,
+                'enrolled_fingers': [],
+                'fingerprints_count': len(enrolled_fingers)
+            }
+            
+            if enrolled_fingers:
+                system_status['users_with_fingerprints'] += 1
+                system_status['total_enrolled_fingerprints'] += len(enrolled_fingers)
+                
+                for finger in enrolled_fingers:
+                    label = fingerprint_service.get_fingerprint_label(user.username, finger)
+                    user_info['enrolled_fingers'].append({
+                        'finger': finger,
+                        'label': label or 'No label'
+                    })
+                    
+                    # Count finger distribution
+                    finger_distribution[finger] = finger_distribution.get(finger, 0) + 1
+            
+            system_status['users'].append(user_info)
+        
+        # Add system summary
+        system_status['system_summary'] = {
+            'enrollment_percentage': round((system_status['users_with_fingerprints'] / max(system_status['total_users'], 1)) * 100, 2),
+            'average_fingerprints_per_user': round(system_status['total_enrolled_fingerprints'] / max(system_status['users_with_fingerprints'], 1), 2) if system_status['users_with_fingerprints'] > 0 else 0,
+            'most_used_fingers': sorted(finger_distribution.items(), key=lambda x: x[1], reverse=True)[:3],
+            'finger_distribution': finger_distribution
+        }
+        
+        return jsonify(system_status), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+@enrollment_bp.route('/search/<finger>', methods=['GET'])
+def search_fingerprint_by_finger(finger):
+    """Search which users have enrolled a specific finger"""
+    try:
+        # Get db_service from app context
+        db_service = current_app.db_service
+        user_service = UserService(db_service)
+        fingerprint_service = FingerprintService()
+        
+        # Get all users from database
+        users = user_service.list_users()
+        
+        users_with_finger = []
+        
+        for user in users:
+            enrolled_fingers = fingerprint_service.get_enrolled_fingers(user.username)
+            
+            if finger in enrolled_fingers:
+                label = fingerprint_service.get_fingerprint_label(user.username, finger)
+                users_with_finger.append({
+                    'id': user.id,
+                    'username': user.username,
+                    'finger': finger,
+                    'label': label or 'No label'
+                })
+        
+        return jsonify({
+            'finger': finger,
+            'users_count': len(users_with_finger),
+            'users': users_with_finger,
+            'message': f'Found {len(users_with_finger)} users with {finger} enrolled'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+@enrollment_bp.route('/analytics', methods=['GET'])
+def get_fingerprint_analytics():
+    """Get advanced analytics about fingerprint usage patterns"""
+    try:
+        # Get db_service from app context
+        db_service = current_app.db_service
+        user_service = UserService(db_service)
+        fingerprint_service = FingerprintService()
+        
+        # Get all users from database
+        users = user_service.list_users()
+        
+        analytics = {
+            'finger_popularity': {},
+            'label_usage': {},
+            'user_patterns': {
+                'single_finger_users': 0,
+                'multi_finger_users': 0,
+                'no_finger_users': 0
+            },
+            'recommendations': [],
+            'security_insights': {}
+        }
+        
+        total_fingerprints = 0
+        users_with_labels = 0
+        fingerprints_with_labels = 0
+        
+        available_fingers = fingerprint_service.get_available_fingers()
+        
+        # Initialize finger popularity
+        for finger in available_fingers:
+            analytics['finger_popularity'][finger] = 0
+        
+        for user in users:
+            enrolled_fingers = fingerprint_service.get_enrolled_fingers(user.username)
+            user_has_labels = False
+            
+            if len(enrolled_fingers) == 0:
+                analytics['user_patterns']['no_finger_users'] += 1
+            elif len(enrolled_fingers) == 1:
+                analytics['user_patterns']['single_finger_users'] += 1
+            else:
+                analytics['user_patterns']['multi_finger_users'] += 1
+            
+            for finger in enrolled_fingers:
+                total_fingerprints += 1
+                analytics['finger_popularity'][finger] += 1
+                
+                label = fingerprint_service.get_fingerprint_label(user.username, finger)
+                if label:
+                    fingerprints_with_labels += 1
+                    user_has_labels = True
+                    
+                    # Count label usage
+                    if label in analytics['label_usage']:
+                        analytics['label_usage'][label] += 1
+                    else:
+                        analytics['label_usage'][label] = 1
+            
+            if user_has_labels:
+                users_with_labels += 1
+        
+        # Generate recommendations
+        recommendations = []
+        
+        # Security recommendations
+        if analytics['user_patterns']['single_finger_users'] > analytics['user_patterns']['multi_finger_users']:
+            recommendations.append({
+                'type': 'security',
+                'priority': 'high',
+                'message': 'Consider enrolling backup fingers for users with only one fingerprint',
+                'impact': 'Improves system reliability and reduces lockout risk'
+            })
+        
+        # Usability recommendations
+        if users_with_labels < len(users) * 0.5:
+            recommendations.append({
+                'type': 'usability',
+                'priority': 'medium',
+                'message': 'Encourage users to add labels to their fingerprints for better identification',
+                'impact': 'Improves user experience and fingerprint management'
+            })
+        
+        # Most/least popular fingers
+        sorted_fingers = sorted(analytics['finger_popularity'].items(), key=lambda x: x[1], reverse=True)
+        most_popular = sorted_fingers[0] if sorted_fingers else None
+        least_popular = [f for f, count in sorted_fingers if count == 0]
+        
+        if most_popular and most_popular[1] > 0:
+            recommendations.append({
+                'type': 'insight',
+                'priority': 'low',
+                'message': f'Most popular finger: {most_popular[0]} ({most_popular[1]} users)',
+                'impact': 'Usage pattern insight'
+            })
+        
+        analytics['recommendations'] = recommendations
+        
+        # Security insights
+        analytics['security_insights'] = {
+            'total_fingerprints': total_fingerprints,
+            'backup_coverage': round((analytics['user_patterns']['multi_finger_users'] / max(len(users), 1)) * 100, 2),
+            'label_coverage': round((fingerprints_with_labels / max(total_fingerprints, 1)) * 100, 2),
+            'enrollment_rate': round(((len(users) - analytics['user_patterns']['no_finger_users']) / max(len(users), 1)) * 100, 2)
+        }
+        
+        # Sort results
+        analytics['finger_popularity'] = dict(sorted(analytics['finger_popularity'].items(), key=lambda x: x[1], reverse=True))
+        analytics['label_usage'] = dict(sorted(analytics['label_usage'].items(), key=lambda x: x[1], reverse=True))
+        
+        return jsonify(analytics), 200
+        
     except Exception as e:
         return jsonify({'error': f'Internal server error: {str(e)}'}), 500

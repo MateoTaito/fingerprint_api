@@ -26,7 +26,15 @@ def verify_fingerprint():
         # Extract usernames for identification
         usernames = [user.username for user in users]
         
+        # Get fingerprint statistics for better reporting
+        fingerprint_service = FingerprintService()
+        total_fingerprints = 0
+        for username in usernames:
+            enrolled_fingers = fingerprint_service.get_enrolled_fingers(username)
+            total_fingerprints += len(enrolled_fingers)
+        
         print(f"🔍 Starting fingerprint identification for users: {usernames}")
+        print(f"📊 Total enrolled fingerprints in system: {total_fingerprints}")
         
         # Use identify_user_smart for optimized identification
         identified_username = fingerprint_service.identify_user_smart(usernames)
@@ -40,12 +48,20 @@ def verify_fingerprint():
                     break
             
             if identified_user:
+                # Get additional info about the identified user's fingerprints
+                enrolled_fingers = fingerprint_service.get_enrolled_fingers(identified_username)
+                
                 return jsonify({
                     'message': f'Fingerprint verification successful for user {identified_username}',
                     'verified': True,
                     'user': {
                         'id': identified_user.id,
-                        'username': identified_user.username
+                        'username': identified_user.username,
+                        'enrolled_fingerprints_count': len(enrolled_fingers)
+                    },
+                    'verification_stats': {
+                        'users_checked': len(users),
+                        'total_fingerprints_in_system': total_fingerprints
                     },
                     'access_granted': True
                 }), 200
@@ -59,7 +75,12 @@ def verify_fingerprint():
             return jsonify({
                 'message': 'Fingerprint verification failed - no matching user found',
                 'verified': False,
-                'access_granted': False
+                'access_granted': False,
+                'verification_stats': {
+                    'users_checked': len(users),
+                    'total_fingerprints_in_system': total_fingerprints,
+                    'message': f'Checked {len(users)} users with {total_fingerprints} total enrolled fingerprints'
+                }
             }), 401
             
     except Exception as e:

@@ -1,0 +1,221 @@
+{
+	"info": {
+		"_postman_id": "fingerprint-api-enhanced",
+		"name": "Fingerprint Access Control API - Enhanced",
+		"description": "Complete collection for testing the enhanced fingerprint API with analytics, search, and system status features",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/health",
+					"host": ["{{base_url}}"],
+					"path": ["api", "health"]
+				}
+			}
+		},
+		{
+			"name": "Create User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"john_doe\",\n  \"password\": \"secure_password\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/users",
+					"host": ["{{base_url}}"],
+					"path": ["api", "users"]
+				}
+			}
+		},
+		{
+			"name": "List All Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/users",
+					"host": ["{{base_url}}"],
+					"path": ["api", "users"]
+				}
+			}
+		},
+		{
+			"name": "Get Specific User",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/users/john_doe",
+					"host": ["{{base_url}}"],
+					"path": ["api", "users", "john_doe"]
+				}
+			}
+		},
+		{
+			"name": "Enroll Fingerprint",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"finger\": \"right-thumb\",\n  \"label\": \"Primary office access\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/enrollment/john_doe",
+					"host": ["{{base_url}}"],
+					"path": ["api", "enrollment", "john_doe"]
+				}
+			}
+		},
+		{
+			"name": "System Status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/enrollment/system/status",
+					"host": ["{{base_url}}"],
+					"path": ["api", "enrollment", "system", "status"]
+				}
+			}
+		},
+		{
+			"name": "Search Users by Finger",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/enrollment/search/right-thumb",
+					"host": ["{{base_url}}"],
+					"path": ["api", "enrollment", "search", "right-thumb"]
+				}
+			}
+		},
+		{
+			"name": "System Analytics",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/enrollment/analytics",
+					"host": ["{{base_url}}"],
+					"path": ["api", "enrollment", "analytics"]
+				}
+			}
+		},
+		{
+			"name": "Verify Fingerprint (Auto-identify)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/verification",
+					"host": ["{{base_url}}"],
+					"path": ["api", "verification"]
+				}
+			}
+		},
+		{
+			"name": "Verify Specific User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"finger\": \"right-thumb\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/verification/john_doe",
+					"host": ["{{base_url}}"],
+					"path": ["api", "verification", "john_doe"]
+				}
+			}
+		},
+		{
+			"name": "Get Enrolled Fingers",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/enrollment/john_doe/fingers",
+					"host": ["{{base_url}}"],
+					"path": ["api", "enrollment", "john_doe", "fingers"]
+				}
+			}
+		},
+		{
+			"name": "Delete Specific Fingerprint",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/enrollment/john_doe/right-thumb",
+					"host": ["{{base_url}}"],
+					"path": ["api", "enrollment", "john_doe", "right-thumb"]
+				}
+			}
+		},
+		{
+			"name": "Delete All User Fingerprints",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/enrollment/john_doe/all",
+					"host": ["{{base_url}}"],
+					"path": ["api", "enrollment", "john_doe", "all"]
+				}
+			}
+		},
+		{
+			"name": "Delete User",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/users/john_doe",
+					"host": ["{{base_url}}"],
+					"path": ["api", "users", "john_doe"]
+				}
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000",
+			"type": "string"
+		}
+	]
+}
