@@ -109,7 +109,7 @@ def enroll_new_user():
                 print(f"⚠️ Warning: Could not create fingerprint record in database: {e}")
             
             return jsonify({
-                'message': f'User {username} created and fingerprint enrolled successfully',
+                'message_inter': f'User {username} created and fingerprint enrolled successfully',
                 'user': {
                     'id': user.id,
                     'username': user.username
@@ -117,21 +117,32 @@ def enroll_new_user():
                 'fingerprint': {
                     'finger': finger,
                     'label': label
-                }
+                },
+                'success': True,
+                'message':'Fingerprint enrolled successfully',
+                'enrollmentId': user.username,
+                'templateData': 'base64_encoded_template',
             }), 201
         else:
             return jsonify({
-                'message': f'User {username} created but fingerprint enrollment failed',
+                'message_inter': f'User {username} created but fingerprint enrollment failed',
                 'user': {
                     'id': user.id,
                     'username': user.username
-                }
+                },
+                'success': False,
+                'message': "Fingerprint enrollment failed",
+                'error': "Scanner not connected"
             }), 201
             
     except ValueError as e:
-        return jsonify({'error': str(e)}), 409
+        return jsonify({'error': str(e),'success': False,
+                'message': "Fingerprint enrollment failed",
+                'error': "Scanner not connected"}), 409
     except Exception as e:
-        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+        return jsonify({'error': f'Internal server error: {str(e)}','success': False,
+                'message': "Fingerprint enrollment failed",
+                'error': "Scanner not connected"}), 500
 
 @enrollment_bp.route('/<username>/fingers', methods=['GET'])
 def get_enrolled_fingers(username):
