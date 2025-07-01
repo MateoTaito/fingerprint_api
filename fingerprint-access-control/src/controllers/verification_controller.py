@@ -63,7 +63,8 @@ def verify_fingerprint():
                         'users_checked': len(users),
                         'total_fingerprints_in_system': total_fingerprints
                     },
-                    'access_granted': True
+                    'access_granted': True,
+                    'email': identified_user.username,
                 }), 200
             else:
                 return jsonify({
